@@ -84,13 +84,13 @@ namespace MooDL.ViewModels
             }
         }
 
-        private int _ToDownload = 1;
+        private int _toDownload = 1;
         public int ToDownload
         {
-            get => _ToDownload;
+            get => _toDownload;
             set
             {
-                _ToDownload = value;
+                _toDownload = value;
                 NotifyOfPropertyChange(() => ToDownload);
             }
         }
