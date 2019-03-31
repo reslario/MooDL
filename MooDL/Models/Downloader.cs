@@ -17,7 +17,7 @@ namespace MooDL.Models
 
         public bool Started { get; set; } = false;
         public bool Finished { get; set; } = false;
-        public bool LoginSuccess { get; set; } = false;
+        public bool LoginSuccess { get; set; } = true;
         public bool ConnectionSuccess { get; set; } = true;
         public int Progress { get; set; } = 0;
         public int ToDownload { get; set; } = 1;

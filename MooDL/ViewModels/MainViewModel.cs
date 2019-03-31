@@ -161,6 +161,7 @@ namespace MooDL.ViewModels
 
         private async Task ShowFeedback(Downloader dl)
         {
+            Error = "";
             await Task.Run(() =>
             {
                 while (!dl.Finished)
