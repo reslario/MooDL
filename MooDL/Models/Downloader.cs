@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Security;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -26,13 +27,15 @@ namespace MooDL.Models
             cwc = new CookieWebClient();
         }
 
-        public async void DownloadFiles(string courseId, string username, string password, string basePath, string folder, bool sort, bool overwrite)
+        public async Task DownloadFiles(string courseId, string username, SecureString password, string basePath, string folder, bool sort, bool overwrite)
         {
-            Login(username, password);
-            await Task.Run(() => DownloadResources(GetResources(DownloadPageSource(courseId)), basePath, folder, sort, overwrite));
+            await Login(username, password);
+            string html = await DownloadPageSource(courseId);
+            AnalyseSource(html);
+            await DownloadResources(GetResources(html), basePath, folder, sort, overwrite);
         }
 
-        private void Login(string username, SecureString password)
+        private async Task Login(string username, SecureString password)
         {
             NameValueCollection details = new NameValueCollection
             {
@@ -40,53 +43,58 @@ namespace MooDL.Models
                 { "password", Marshal.PtrToStringUni(Marshal.SecureStringToGlobalAllocUnicode(password ?? new SecureString())) },
             };
 
-            cwc.UploadValues("https://moodle.bbbaden.ch/login/index.php", details);
+            await cwc.UploadValuesTaskAsync(new Uri("https://moodle.bbbaden.ch/login/index.php"), details);
         }
 
-        private string DownloadPageSource(string courseId)
+        private async Task<string> DownloadPageSource(string courseId)
         {
-            string html = "";
+            Started = true;
             try
             {
-                html = cwc.DownloadString("https://moodle.bbbaden.ch/course/view.php?id=" + courseId);
+                return await cwc.DownloadStringTaskAsync("https://moodle.bbbaden.ch/course/view.php?id=" + courseId);
             }
             catch (WebException)
             {
                 ConnectionSuccess = false;
+                return "";
             }
 
-            LoginSuccess = !html.Contains("Login");
-            Started = true;
-            return html;
+
         }
+
+        private void AnalyseSource(string html)
+            => LoginSuccess = !html.Contains("Login");
 
         private Resource[] GetResources(string html)
         {
-            Regex resourceRegex = new Regex(@"<div class=""activityinstance""><a class="""" onclick="""" href=""([^""]+)""><img src=""https:\/\/moodle\.bbbaden\.ch\/theme\/image\.php\/_s\/lambda\/core\/1547110846\/f\/(unknown|document|spreadsheet|powerpoint|archive|pdf)[^<]*[^>]*>([^<]*)");
+            Regex resourceRegex = new Regex(Resource.ResourceRegex);
             MatchCollection resourceMatches = resourceRegex.Matches(html);
             Resource[] resources = new Resource[resourceMatches.Count];
 
             for (int i = 0; i < resourceMatches.Count; i++)
             {
+                string url = resourceMatches[i].Groups[1].Value;
+                string name = resourceMatches[i].Groups[3].Value;
+
                 switch (resourceMatches[i].Groups[2].Value)
                 {
                     case "document":
-                        resources[i] = new Docx(resourceMatches[i].Groups[1].Value, resourceMatches[i].Groups[3].Value);
+                        resources[i] = new Docx(url, name);
                         break;
                     case "powerpoint":
-                        resources[i] = new Pptx(resourceMatches[i].Groups[1].Value, resourceMatches[i].Groups[3].Value);
+                        resources[i] = new Pptx(url, name);
                         break;
                     case "spreadsheet":
-                        resources[i] = new Xlsx(resourceMatches[i].Groups[1].Value, resourceMatches[i].Groups[3].Value);
+                        resources[i] = new Xlsx(url, name);
                         break;
                     case "archive":
-                        resources[i] = new Zip(resourceMatches[i].Groups[1].Value, resourceMatches[i].Groups[3].Value);
+                        resources[i] = new Zip(url, name);
                         break;
                     case "pdf":
-                        resources[i] = new Pdf(resourceMatches[i].Groups[1].Value, resourceMatches[i].Groups[3].Value);
+                        resources[i] = new Pdf(url, name);
                         break;
                     case "unknown":
-                        resources[i] = new Unknown(resourceMatches[i].Groups[1].Value, resourceMatches[i].Groups[3].Value);
+                        resources[i] = new Unknown(url, name);
                         break;
                 }
             }
@@ -95,30 +103,34 @@ namespace MooDL.Models
             return resources;
         }
 
-        private async void DownloadResources(Resource[] resources, string basePath, string folder, bool sort, bool overwrite)
+        private async Task DownloadResources(Resource[] resources, string basePath, string folder, bool sort, bool overwrite)
         {
             string path = $"{basePath}{folder}\\";
-            string subFolder = "";
 
             Directory.CreateDirectory(path);
 
             if (sort)
-                Array.ForEach(resources.Select(r => r.Type).Distinct().ToArray(), t => Directory.CreateDirectory(path + t));
+                foreach (string s in resources.Select(r => r.Type).Distinct())
+                    Directory.CreateDirectory(path + s);
 
-            await Task.Run(() =>
+
+            foreach (Resource r in resources)
             {
-                foreach (Resource r in resources)
-                {
-                    subFolder = sort ? $"{r.Type}\\" : "";
+                string subFolder = sort ? $"{r.Type}\\" : "";
 
-                    if (!overwrite && File.Exists($"{path}{subFolder}{r.Name}{r.Extension}"))
-                        continue;
+                await Write($"{path}{subFolder}{r.Name}{r.Extension}", await cwc.DownloadDataTaskAsync(r.Url), overwrite);
+                Progress++;
+            }
+            Finished = true;
+        }
 
-                    File.WriteAllBytes($"{path}{subFolder}{r.Name}{r.Extension}", cwc.DownloadData(r.Url));
-                    Progress++;
-                }
-                Finished = true;
-            });
+        private async Task Write(string path, byte[] bytes, bool overwrite)
+        {
+            if (!overwrite && File.Exists(path))
+                return;
+
+            using (FileStream fileStream = new FileStream(path, FileMode.Create, FileAccess.Write))
+                await fileStream.WriteAsync(bytes, 0, bytes.Length);
         }
     }
 }

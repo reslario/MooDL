@@ -159,7 +159,7 @@ namespace MooDL.ViewModels
             return false;
         }
 
-        private async void ShowFeedback(Downloader dl)
+        private async Task ShowFeedback(Downloader dl)
         {
             await Task.Run(() =>
             {
