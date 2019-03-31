@@ -51,19 +51,17 @@ namespace MooDL.Models
             Started = true;
             try
             {
-                return await cwc.DownloadStringTaskAsync("https://moodle.bbbaden.ch/course/view.php?id=" + courseId);
+                return Encoding.UTF8.GetString(await cwc.DownloadDataTaskAsync("https://moodle.bbbaden.ch/course/view.php?id=" + courseId));
             }
             catch (WebException)
             {
                 ConnectionSuccess = false;
                 return "";
             }
-
-
         }
 
         private void AnalyseSource(string html)
-            => LoginSuccess = !html.Contains("Login");
+            => LoginSuccess = !html.Contains("page-login-index");
 
         private Resource[] GetResources(string html)
         {
