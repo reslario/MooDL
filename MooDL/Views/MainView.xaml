@@ -5,7 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:cal="http://www.caliburnproject.org"
         xmlns:local="clr-namespace:MooDL"
-        xmlns:ViewModels="clr-namespace:MooDL.ViewModels" x:Class="MooDL.Views.MainView"
+        xmlns:models="clr-namespace:MooDL.Models"
+        x:Class="MooDL.Views.MainView"
         mc:Ignorable="d"
         Title="MooDL" Height="450" Width="800" ResizeMode="CanMinimize" WindowStyle="None">
     <Window.Resources>
@@ -156,7 +157,7 @@
                     <ColumnDefinition Width="2*" />
                 </Grid.ColumnDefinitions>
                 <TextBox x:Name="UserBox" HorizontalAlignment="Center" Height="29" Margin="24,88,23,108" TextWrapping="NoWrap" Text="{Binding Username}" Width="242" BorderBrush="#FF1C1C1C" Foreground="#FFEEEEEE" Background="#FF1C1C1C" Grid.Row="1" Grid.ColumnSpan="2" TextAlignment="Center" FontSize="16" Grid.RowSpan="2"/>
-                <TextBox x:Name="PassBox" HorizontalAlignment="Center" Height="29" Margin="24,24,23,0" TextWrapping="NoWrap" Text="{Binding Password}" VerticalAlignment="Top" Width="242" BorderBrush="{x:Null}" Foreground="#FFEEEEEE" Background="#FF1C1C1C" Grid.Row="2" Grid.ColumnSpan="2" TextAlignment="Center" FontSize="16"/>
+                <PasswordBox local:AttachedProperties.EncryptedPassword="{Binding Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" x:Name="PassBox"  Password="password" HorizontalContentAlignment="Center" Height="29" Margin="24,24,23,0" VerticalAlignment="Top" Width="242" BorderBrush="{x:Null}" Foreground="#FFEEEEEE" Background="#FF1C1C1C" Grid.Row="2" Grid.ColumnSpan="2" FontSize="16" PasswordChanged="PassBox_PasswordChanged"/>
                 <Label x:Name="Error" Content="{Binding Error}" HorizontalAlignment="Left" Margin="43,73,0,0" Grid.Row="2" VerticalAlignment="Top" Grid.ColumnSpan="2" Width="198" HorizontalContentAlignment="Center" Foreground="Red" Height="45" FontSize="20" Grid.RowSpan="2"/>
                 <Label Content="Login" HorizontalAlignment="Left" Margin="43,76,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2" Width="198" Height="81" Grid.RowSpan="2" FontSize="48" HorizontalContentAlignment="Center" Foreground="#FFEEEEEE"/>
             </Grid>

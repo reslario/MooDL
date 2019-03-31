@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Security;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Media;
 using Microsoft.WindowsAPICodePack.Dialogs;
@@ -35,7 +36,16 @@ namespace MooDL.ViewModels
 
         public string Username { get; set; } = "username";
 
-        public string Password { get; set; } = "password";
+        private SecureString _password;
+        public SecureString Password
+        {
+            get => _password;
+            set
+            {
+                _password = value;
+                NotifyOfPropertyChange(() => Password);
+            }
+        }
 
         private string _folder = "Course";
         public string Folder
@@ -85,6 +95,7 @@ namespace MooDL.ViewModels
         }
 
         private int _toDownload = 1;
+
         public int ToDownload
         {
             get => _toDownload;

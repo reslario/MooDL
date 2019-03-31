@@ -115,6 +115,7 @@
     <Compile Include="Models\CookieWebClient.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="AttachedProperties.cs" />
     <Compile Include="Models\Resources\Docx.cs" />
     <Compile Include="Models\Downloader.cs" />
     <Compile Include="Models\Resources\Folder.cs" />

@@ -3,6 +3,8 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices;
+using System.Security;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -30,12 +32,12 @@ namespace MooDL.Models
             await Task.Run(() => DownloadResources(GetResources(DownloadPageSource(courseId)), basePath, folder, sort, overwrite));
         }
 
-        private void Login(string username, string password)
+        private void Login(string username, SecureString password)
         {
             NameValueCollection details = new NameValueCollection
             {
                 { "username", username },
-                { "password", password },
+                { "password", Marshal.PtrToStringUni(Marshal.SecureStringToGlobalAllocUnicode(password ?? new SecureString())) },
             };
 
             cwc.UploadValues("https://moodle.bbbaden.ch/login/index.php", details);

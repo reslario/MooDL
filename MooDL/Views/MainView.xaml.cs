@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 
 namespace MooDL.Views   
@@ -26,6 +27,13 @@ namespace MooDL.Views
         private void btn_minimise_Click(object sender, RoutedEventArgs e)
         {
             GetWindow(sender as DependencyObject).WindowState = WindowState.Minimized;
+        }
+
+        private void PassBox_PasswordChanged(object sender, RoutedEventArgs e)
+        {
+            PasswordBox pBox = sender as PasswordBox;
+
+            AttachedProperties.SetEncryptedPassword(pBox, pBox.SecurePassword);
         }
     }
 }
