@@ -41,7 +41,7 @@ namespace MooDL.ViewModels
         public string Folder
         {
             get => _folder;
-            set => _folder = new Regex(@"(?:\/|\\|\?|%|\*|:|\||""|<|>|\.)").Replace(value, " ");
+            set => _folder = Regex.Replace(value, @"(?:\/|\\|\?|%|\*|:|\||""|<|>|\.)", " ");
         }
 
         public bool Sort { get; set; } = true;
