@@ -19,7 +19,7 @@ namespace MooDL.Models
         protected Resource(string url, string name)
         {
             Url = url;
-            Name = new Regex(@"(?:\/|\\|\?|%|\*|:|\||""|<|>|\.)").Replace(name, " ");
+            Name = Regex.Replace(name, @"(?:\/|\\|\?|%|\*|:|\||""|<|>|\.)", " ");
         }
     }
 }
