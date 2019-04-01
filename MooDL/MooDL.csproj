@@ -112,10 +112,12 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Models\DownloaderBase.cs" />
     <Compile Include="Models\CookieWebClient.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="AttachedProperties.cs" />
+    <Compile Include="Models\FolderDownloader.cs" />
     <Compile Include="Models\Resources\Docx.cs" />
     <Compile Include="Models\Downloader.cs" />
     <Compile Include="Models\Resources\Folder.cs" />

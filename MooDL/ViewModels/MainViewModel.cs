@@ -95,7 +95,6 @@ namespace MooDL.ViewModels
         }
 
         private int _toDownload = 1;
-
         public int ToDownload
         {
             get => _toDownload;
@@ -106,13 +105,23 @@ namespace MooDL.ViewModels
             }
         }
 
-        public void Download()
+        public async Task Download()
         {
             if (CourseIdIsValid() && PathIsValid())
             {
                 Downloader dl = new Downloader();
-                dl.DownloadFiles(CourseId, Username, Password, BasePath, Folder, Sort, Overwrite);
-                ShowFeedback(dl);
+                Task downloadTask = dl.DownloadFiles(CourseId, Username, Password, BasePath, Folder, Sort, Overwrite);
+
+                await Task.WhenAny(downloadTask, Task.Run(async () =>
+                {
+                    while (!downloadTask.IsCompleted)
+                    {
+                        ShowFeedback(dl);
+                    }
+                }));
+
+                Progress = 0;
+                ToDownload = 1;
             }
         }
 
@@ -159,36 +168,24 @@ namespace MooDL.ViewModels
             return false;
         }
 
-        private async Task ShowFeedback(Downloader dl)
+        private void ShowFeedback(Downloader dl)
         {
             Error = "";
-            await Task.Run(() =>
+            ToDownload = dl.ToDownload;
+            Progress = dl.Progress;
+
+            if (dl.LoginSuccess && dl.ConnectionSuccess)
             {
-                while (!dl.Finished)
-                {
-                    if (dl.Started)
-                    {
-                        ToDownload = dl.ToDownload;
-                        Progress = dl.Progress;
-
-                        if (dl.LoginSuccess && dl.ConnectionSuccess)
-                        {
-                            Error = "";
-                        }
-                        else if (!dl.LoginSuccess)
-                        {
-                            Error = "Login Failed";
-                        }
-                        else if (!dl.ConnectionSuccess)
-                        {
-                            Error = "Connection failed";
-                        }
-                    }
-                }
-
-                Progress = 0;
-                ToDownload = 1;
-            });
+                Error = "";
+            }
+            else if (!dl.LoginSuccess)
+            {
+                Error = "Login Failed";
+            }
+            else if (!dl.ConnectionSuccess)
+            {
+                Error = "Connection failed";
+            }
         }
     }
 }

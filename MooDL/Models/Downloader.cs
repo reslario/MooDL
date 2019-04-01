@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MooDL.Models.Resources;
+using System;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
@@ -11,28 +12,25 @@ using System.Threading.Tasks;
 
 namespace MooDL.Models
 {
-    class Downloader
+    class Downloader : DownloaderBase
     {
-        private readonly CookieWebClient cwc;
+        public bool Started { get;private set; } = false;
+        public bool Finished { get; private set; } = false;
+        public bool LoginSuccess { get; private set; } = true;
+        public bool ConnectionSuccess { get; private set; } = true;
+        public int ToDownload { get; private set; } = 1;
+        public int Progress { get; private set; } = 0;
 
-        public bool Started { get; set; } = false;
-        public bool Finished { get; set; } = false;
-        public bool LoginSuccess { get; set; } = true;
-        public bool ConnectionSuccess { get; set; } = true;
-        public int Progress { get; set; } = 0;
-        public int ToDownload { get; set; } = 1;
-
-        public Downloader()
-        {
-            cwc = new CookieWebClient();
-        }
+        public Downloader() => cwc = new CookieWebClient();
 
         public async Task DownloadFiles(string courseId, string username, SecureString password, string basePath, string folder, bool sort, bool overwrite)
         {
             await Login(username, password);
-            string html = await DownloadPageSource(courseId);
+            var html = await DownloadPageSource("https://moodle.bbbaden.ch/course/view.php?id=" + courseId);
             AnalyseSource(html);
-            await DownloadResources(GetResources(html), basePath, folder, sort, overwrite);
+            var resources = GetResources(html);
+            ToDownload = resources.Length;
+            await DownloadResources(resources, basePath, folder, sort, overwrite);
         }
 
         private async Task Login(string username, SecureString password)
@@ -46,12 +44,12 @@ namespace MooDL.Models
             await cwc.UploadValuesTaskAsync(new Uri("https://moodle.bbbaden.ch/login/index.php"), details);
         }
 
-        private async Task<string> DownloadPageSource(string courseId)
+        protected override async Task<string> DownloadPageSource(string url)
         {
             Started = true;
             try
             {
-                return Encoding.UTF8.GetString(await cwc.DownloadDataTaskAsync("https://moodle.bbbaden.ch/course/view.php?id=" + courseId));
+                return await base.DownloadPageSource(url);
             }
             catch (WebException)
             {
@@ -62,44 +60,6 @@ namespace MooDL.Models
 
         private void AnalyseSource(string html)
             => LoginSuccess = !html.Contains("page-login-index");
-
-        private Resource[] GetResources(string html)
-        {
-            Regex resourceRegex = new Regex(Resource.ResourceRegex);
-            MatchCollection resourceMatches = resourceRegex.Matches(html);
-            Resource[] resources = new Resource[resourceMatches.Count];
-
-            for (int i = 0; i < resourceMatches.Count; i++)
-            {
-                string url = resourceMatches[i].Groups[1].Value;
-                string name = resourceMatches[i].Groups[3].Value;
-
-                switch (resourceMatches[i].Groups[2].Value)
-                {
-                    case "document":
-                        resources[i] = new Docx(url, name);
-                        break;
-                    case "powerpoint":
-                        resources[i] = new Pptx(url, name);
-                        break;
-                    case "spreadsheet":
-                        resources[i] = new Xlsx(url, name);
-                        break;
-                    case "archive":
-                        resources[i] = new Zip(url, name);
-                        break;
-                    case "pdf":
-                        resources[i] = new Pdf(url, name);
-                        break;
-                    case "unknown":
-                        resources[i] = new Unknown(url, name);
-                        break;
-                }
-            }
-
-            ToDownload = resources.Length;
-            return resources;
-        }
 
         private async Task DownloadResources(Resource[] resources, string basePath, string folder, bool sort, bool overwrite)
         {
@@ -116,19 +76,17 @@ namespace MooDL.Models
             {
                 string subFolder = sort ? $"{r.Type}\\" : "";
 
+                if (r is Folder f)
+                {
+                    FolderDownloader fdl = new FolderDownloader(cwc, f);
+                    await fdl.DownloadFiles($"{path}{subFolder}{r.Name}", overwrite);
+                    Progress++;
+                    continue;
+                }
                 await Write($"{path}{subFolder}{r.Name}{r.Extension}", await cwc.DownloadDataTaskAsync(r.Url), overwrite);
                 Progress++;
             }
             Finished = true;
-        }
-
-        private async Task Write(string path, byte[] bytes, bool overwrite)
-        {
-            if (!overwrite && File.Exists(path))
-                return;
-
-            using (FileStream fileStream = new FileStream(path, FileMode.Create, FileAccess.Write))
-                await fileStream.WriteAsync(bytes, 0, bytes.Length);
         }
     }
 }

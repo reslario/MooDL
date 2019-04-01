@@ -1,4 +1,4 @@
-﻿namespace MooDL.Models
+﻿namespace MooDL.Models.Resources
 {
     class Xlsx : Resource
     {
