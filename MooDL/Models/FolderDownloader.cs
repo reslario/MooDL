@@ -22,7 +22,7 @@ namespace MooDL.Models
             var resources = GetResources(await DownloadPageSource(folder.Url));
             foreach (var r in resources)
             {
-                byte[] data = await cwc.DownloadDataTaskAsync(r.Url);
+                byte[] data = await Download(r.Url);
                 await Write($"{path}\\{r.Name}{r.Extension}", data, overwrite);
             }
         }

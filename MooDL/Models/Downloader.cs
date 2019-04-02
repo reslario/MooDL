@@ -83,7 +83,8 @@ namespace MooDL.Models
                     Progress++;
                     continue;
                 }
-                await Write($"{path}{subFolder}{r.Name}{r.Extension}", await cwc.DownloadDataTaskAsync(r.Url), overwrite);
+
+                await Write($"{path}{subFolder}{r.Name}{r.Extension}", await Download(r.Url), overwrite);
                 Progress++;
             }
             Finished = true;

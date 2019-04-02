@@ -112,12 +112,10 @@ namespace MooDL.ViewModels
                 Downloader dl = new Downloader();
                 Task downloadTask = dl.DownloadFiles(CourseId, Username, Password, BasePath, Folder, Sort, Overwrite);
 
-                await Task.WhenAny(downloadTask, Task.Run(async () =>
+                await Task.WhenAny(downloadTask, Task.Run(() =>
                 {
                     while (!downloadTask.IsCompleted)
-                    {
                         ShowFeedback(dl);
-                    }
                 }));
 
                 Progress = 0;
