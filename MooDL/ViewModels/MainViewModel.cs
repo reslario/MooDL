@@ -109,18 +109,24 @@ namespace MooDL.ViewModels
         {
             if (CourseIdIsValid() && PathIsValid())
             {
+                Error = "";
                 Downloader dl = new Downloader();
-                Task downloadTask = dl.DownloadFiles(CourseId, Username, Password, BasePath, Folder, Sort, Overwrite);
-
-                await Task.WhenAny(downloadTask, Task.Run(() =>
-                {
-                    while (!downloadTask.IsCompleted)
-                        ShowFeedback(dl);
-                }));
-
-                Progress = 0;
-                ToDownload = 1;
+                AddHandlers(dl);
+                await dl.DownloadFiles(CourseId, Username, Password, BasePath, Folder, Sort, Overwrite);
             }
+        }
+
+        private void AddHandlers(Downloader dl)
+        {
+            dl.OnResourcesFound += (s, amount) => ToDownload = amount;
+            dl.OnConnectionFailed += (s, args) => Error = "Connection failed";
+            dl.OnLoginFailed += (s, args) => Error = "Login failed";
+            dl.OnProgress += (s, progress) => Progress = progress; 
+            dl.OnFinished += (s, args) =>
+            {
+                ToDownload = 1;
+                Progress = 0;
+            };
         }
 
         public void PathSelect()
@@ -164,26 +170,6 @@ namespace MooDL.ViewModels
 
             BasePathColor = Brushes.Red;
             return false;
-        }
-
-        private void ShowFeedback(Downloader dl)
-        {
-            Error = "";
-            ToDownload = dl.ToDownload;
-            Progress = dl.Progress;
-
-            if (dl.LoginSuccess && dl.ConnectionSuccess)
-            {
-                Error = "";
-            }
-            else if (!dl.LoginSuccess)
-            {
-                Error = "Login Failed";
-            }
-            else if (!dl.ConnectionSuccess)
-            {
-                Error = "Connection failed";
-            }
         }
     }
 }

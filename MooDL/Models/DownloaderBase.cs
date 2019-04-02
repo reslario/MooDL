@@ -27,7 +27,7 @@ namespace MooDL.Models
                 await fileStream.WriteAsync(bytes, 0, bytes.Length);
         }
 
-        protected Resource[] GetResources(string html)
+        protected virtual Resource[] GetResources(string html)
         {
             Regex resourceRegex = new Regex(html.Contains("download_folder.php") ? Resource.FolderResourceRegex : Resource.ResourceRegex);
             Resource[] resources = resourceRegex.Matches(html).Cast<Match>().Select(

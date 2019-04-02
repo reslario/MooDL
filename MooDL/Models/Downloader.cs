@@ -14,12 +14,13 @@ namespace MooDL.Models
 {
     class Downloader : DownloaderBase
     {
-        public bool Started { get;private set; } = false;
-        public bool Finished { get; private set; } = false;
-        public bool LoginSuccess { get; private set; } = true;
-        public bool ConnectionSuccess { get; private set; } = true;
-        public int ToDownload { get; private set; } = 1;
-        public int Progress { get; private set; } = 0;
+        public event EventHandler OnFinished;
+        public event EventHandler OnLoginFailed;
+        public event EventHandler OnConnectionFailed;
+        public event EventHandler<int> OnProgress;
+        public event EventHandler<int> OnResourcesFound;
+
+        private int progress = 0;
 
         public Downloader() => cwc = new CookieWebClient();
 
@@ -29,7 +30,7 @@ namespace MooDL.Models
             var html = await DownloadPageSource("https://moodle.bbbaden.ch/course/view.php?id=" + courseId);
             AnalyseSource(html);
             var resources = GetResources(html);
-            ToDownload = resources.Length;
+            OnResourcesFound.Invoke(this, resources.Length);
             await DownloadResources(resources, basePath, folder, sort, overwrite);
         }
 
@@ -46,20 +47,22 @@ namespace MooDL.Models
 
         protected override async Task<string> DownloadPageSource(string url)
         {
-            Started = true;
             try
             {
                 return await base.DownloadPageSource(url);
             }
             catch (WebException)
             {
-                ConnectionSuccess = false;
+                OnConnectionFailed.Invoke(this, null);
                 return "";
             }
         }
 
         private void AnalyseSource(string html)
-            => LoginSuccess = !html.Contains("page-login-index");
+        {
+            if (html.Contains("page-login-index"))
+                OnLoginFailed.Invoke(this, null);
+        }
 
         private async Task DownloadResources(Resource[] resources, string basePath, string folder, bool sort, bool overwrite)
         {
@@ -80,14 +83,17 @@ namespace MooDL.Models
                 {
                     FolderDownloader fdl = new FolderDownloader(cwc, f);
                     await fdl.DownloadFiles($"{path}{subFolder}{r.Name}", overwrite);
-                    Progress++;
-                    continue;
+                }
+                else
+                {
+                    await Write($"{path}{subFolder}{r.Name}{r.Extension}", await Download(r.Url), overwrite);
                 }
 
-                await Write($"{path}{subFolder}{r.Name}{r.Extension}", await Download(r.Url), overwrite);
-                Progress++;
+                progress++;
+                OnProgress.Invoke(this, progress);
             }
-            Finished = true;
+
+            OnFinished.Invoke(this, null);
         }
     }
 }
