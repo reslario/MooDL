@@ -1,58 +1,66 @@
 ﻿<Window
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:cal="http://www.caliburnproject.org"
-        xmlns:local="clr-namespace:MooDL"
-        xmlns:models="clr-namespace:MooDL.Models"
-        x:Class="MooDL.Views.MainView"
-        mc:Ignorable="d"
-        Title="MooDL" Height="450" Width="800" ResizeMode="CanMinimize" WindowStyle="None">
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:local="clr-namespace:MooDL"
+    x:Class="MooDL.Views.MainView"
+    mc:Ignorable="d"
+    Title="MooDL" Height="450" Width="800" ResizeMode="CanMinimize" WindowStyle="None">
     <Window.Resources>
         <ControlTemplate TargetType="{x:Type ContentControl}" x:Key="MainContainer">
             <DockPanel VerticalAlignment="Stretch" Background="#121212">
-                <Grid x:Name="grid_bar" VerticalAlignment="Top" Background="{x:Null}" MouseLeftButtonDown="grid_bar_MouseDown" DockPanel.Dock="Top" Panel.ZIndex="999">
-                    <TextBlock x:Name="tblock_title" TextWrapping="Wrap" Text="{Binding Title, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" VerticalAlignment="Top" Foreground="#eee" Padding="5" FontSize="20" Height="34" Margin="50,0,37,0" Panel.ZIndex="1000" />
-                    <Image HorizontalAlignment="Left" Height="17" VerticalAlignment="Top" Width="26" Source="../moodl.png" Margin="18,12,0,0"/>
-                    <Button x:Name="btn_close" Content="❌" VerticalAlignment="Top" Height="34" Background="#FF121212" Foreground="Gray" FontSize="18" Click="btn_close_Click" HorizontalAlignment="Right" Width="37" Style="{DynamicResource ControlBtns}" />
-                    <Button x:Name="btn_minimise" Content="➖" VerticalAlignment="Top" Height="34" Background="#FF121212" Foreground="Gray" FontSize="18" Click="btn_minimise_Click" HorizontalAlignment="Right" Width="37" Margin="0,0,37,0" Panel.ZIndex="1001" Style="{DynamicResource ControlBtns}" />
+                <Grid x:Name="grid_bar" VerticalAlignment="Top" Background="{x:Null}"
+                      MouseLeftButtonDown="grid_bar_MouseDown" DockPanel.Dock="Top" Panel.ZIndex="999">
+                    <TextBlock x:Name="tblock_title" TextWrapping="Wrap"
+                               Text="{Binding Path=Title, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}"
+                               VerticalAlignment="Top" Foreground="#eee" Padding="5" FontSize="20" Height="34"
+                               Margin="50,0,37,0" Panel.ZIndex="1000" />
+                    <Image HorizontalAlignment="Left" Height="17" VerticalAlignment="Top" Width="26"
+                           Source="../moodl.png" Margin="18,12,0,0" />
+                    <Button x:Name="btn_close" Content="❌" VerticalAlignment="Top" Height="34" Background="#FF121212"
+                            Foreground="Gray" FontSize="18" Click="btn_close_Click" HorizontalAlignment="Right"
+                            Width="37" Style="{DynamicResource ControlBtns}" />
+                    <Button x:Name="btn_minimise" Content="➖" VerticalAlignment="Top" Height="34"
+                            Background="#FF121212" Foreground="Gray" FontSize="18" Click="btn_minimise_Click"
+                            HorizontalAlignment="Right" Width="37" Margin="0,0,37,0" Panel.ZIndex="1001"
+                            Style="{DynamicResource ControlBtns}" />
                 </Grid>
-                <ContentPresenter/>
+                <ContentPresenter />
             </DockPanel>
         </ControlTemplate>
         <Style x:Key="{x:Type CheckBox}" TargetType="{x:Type CheckBox}">
-            <Setter Property="SnapsToDevicePixels" Value="true"/>
-            <Setter Property="OverridesDefaultStyle" Value="true"/>
+            <Setter Property="SnapsToDevicePixels" Value="true" />
+            <Setter Property="OverridesDefaultStyle" Value="true" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type CheckBox}">
                         <BulletDecorator Background="Transparent">
                             <BulletDecorator.Bullet>
-                                <Border x:Name="Border" 
-                                   Width="13" 
-                                   Height="13" 
-                                   CornerRadius="0" 
-                                   Background="Black"
-                                   BorderThickness="1"
-                                   BorderBrush="Black">
-                                    <Path 
-                                    Width="7" Height="7" 
-                                    x:Name="CheckMark"
-                                    SnapsToDevicePixels="False" 
-                                    Stroke="LimeGreen"
-                                    StrokeThickness="2"
-                                    Data="M 0 0 L 7 7 M 0 7 L 7 0" />
+                                <Border x:Name="Border"
+                                        Width="13"
+                                        Height="13"
+                                        CornerRadius="0"
+                                        Background="Black"
+                                        BorderThickness="1"
+                                        BorderBrush="Black">
+                                    <Path
+                                        Width="7" Height="7"
+                                        x:Name="CheckMark"
+                                        SnapsToDevicePixels="False"
+                                        Stroke="LimeGreen"
+                                        StrokeThickness="2"
+                                        Data="M 0 0 L 7 7 M 0 7 L 7 0" />
                                 </Border>
                             </BulletDecorator.Bullet>
                             <ContentPresenter Margin="4,0,0,0"
-                              VerticalAlignment="Center"
-                              HorizontalAlignment="Left"
-                              RecognizesAccessKey="True"/>
+                                              VerticalAlignment="Center"
+                                              HorizontalAlignment="Left"
+                                              RecognizesAccessKey="True" />
                         </BulletDecorator>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsChecked" Value="false">
-                                <Setter TargetName="CheckMark" Property="Visibility" Value="Collapsed"/>
+                                <Setter TargetName="CheckMark" Property="Visibility" Value="Collapsed" />
                             </Trigger>
                             <Trigger Property="IsChecked" Value="{x:Null}">
                                 <Setter TargetName="CheckMark" Property="Data" Value="M 0 7 L 7 0" />
@@ -68,7 +76,7 @@
                             <Trigger Property="IsEnabled" Value="false">
                                 <Setter TargetName="Border" Property="Background" Value="Black" />
                                 <Setter TargetName="Border" Property="BorderBrush" Value="Black" />
-                                <Setter Property="Foreground" Value="#888888"/>
+                                <Setter Property="Foreground" Value="#888888" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -76,19 +84,19 @@
             </Setter>
         </Style>
         <Style TargetType="{x:Type Button}">
-            <Setter Property="Background" Value="#1C1C1C"/>
+            <Setter Property="Background" Value="#1C1C1C" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type Button}">
                         <Border Background="{TemplateBinding Background}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#FF2C2C2C"/>
+                    <Setter Property="Background" Value="#FF2C2C2C" />
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -96,10 +104,11 @@
     <ContentControl Template="{StaticResource MainContainer}">
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="413*"/>
-                <ColumnDefinition Width="382*"/>
+                <ColumnDefinition Width="413*" />
+                <ColumnDefinition Width="382*" />
             </Grid.ColumnDefinitions>
-            <Grid HorizontalAlignment="Left" Height="419" VerticalAlignment="Top" Width="503" Background="#FF121212" Margin="289,0,0,-32" Grid.ColumnSpan="2">
+            <Grid HorizontalAlignment="Left" Height="419" VerticalAlignment="Top" Width="503" Background="#FF121212"
+                  Margin="289,0,0,-32" Grid.ColumnSpan="2">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="2*" />
                     <RowDefinition Height="2*" />
@@ -110,42 +119,65 @@
                     <ColumnDefinition Width="2*" />
                     <ColumnDefinition Width="2*" />
                 </Grid.ColumnDefinitions>
-                <TextBox x:Name="CourseId" ToolTip="The number at the end of the url linking to the course; usually NOT the actual course number" Padding="4" HorizontalAlignment="Center" Height="46" Margin="126,81,125,0" TextWrapping="NoWrap" Text="Course ID" VerticalAlignment="Top" Width="252" BorderBrush="{Binding CourseIdBorder}" Foreground="#FFEEEEEE" Background="#FF1C1C1C" Grid.ColumnSpan="2" Grid.RowSpan="2" TextAlignment="Center" FontSize="24" TextDecorations="{x:Null}"/>
-                <Button x:Name="Download" Content="" HorizontalAlignment="Left" Margin="51,102.4,0,0" VerticalAlignment="Top" Width="401" Height="61" Foreground="#FFEEEEEE" Grid.ColumnSpan="2" Grid.Row="2" Grid.RowSpan="2" FontSize="43"/>
-                <Label Content="Download" HorizontalContentAlignment="Center" IsHitTestVisible="False" Foreground="#FFEEEEEE" FontSize="43" Height="66" VerticalAlignment="Bottom" Margin="126,0,126,46" Grid.ColumnSpan="2" Grid.Row="2" Grid.RowSpan="2" Panel.ZIndex="999"/>
-                <TextBox x:Name="FolderBox" Padding="7" HorizontalAlignment="Center" Height="33" Margin="79,84,83,0" TextWrapping="NoWrap" Text="{Binding Folder}" VerticalAlignment="Top" Width="90" BorderBrush="{x:Null}" Foreground="#FFEEEEEE" Background="#FF1C1C1C" Grid.Column="1" Grid.Row="1" Grid.RowSpan="2" TextAlignment="Center" RenderTransformOrigin="0.5,0.5">
+                <TextBox x:Name="CourseId"
+                         ToolTip="The number at the end of the url linking to the course; usually NOT the actual course number"
+                         Padding="4" HorizontalAlignment="Center" Height="46" Margin="126,81,125,0"
+                         TextWrapping="NoWrap" Text="{Binding Path=CourseId}" VerticalAlignment="Top" Width="252"
+                         BorderBrush="{Binding Path=CourseIdBorder}" Foreground="#FFEEEEEE" Background="#FF1C1C1C"
+                         Grid.ColumnSpan="2" Grid.RowSpan="2" TextAlignment="Center" FontSize="24"
+                         TextDecorations="{x:Null}" />
+                <Button x:Name="Download" Command="{Binding DownloadCommand}" Content="" HorizontalAlignment="Left"
+                        Margin="51,102.4,0,0" VerticalAlignment="Top" Width="401" Height="61" Foreground="#FFEEEEEE"
+                        Grid.ColumnSpan="2" Grid.Row="2" Grid.RowSpan="2" FontSize="43" />
+                <Label Content="Download" HorizontalContentAlignment="Center" IsHitTestVisible="False"
+                       Foreground="#FFEEEEEE" FontSize="43" Height="66" VerticalAlignment="Bottom"
+                       Margin="126,0,126,46" Grid.ColumnSpan="2" Grid.Row="2" Grid.RowSpan="2" Panel.ZIndex="999" />
+                <TextBox x:Name="FolderBox" Padding="7" HorizontalAlignment="Center" Height="33" Margin="79,84,83,0"
+                         TextWrapping="NoWrap" Text="{Binding Path=Folder}" VerticalAlignment="Top" Width="90"
+                         BorderBrush="{x:Null}" Foreground="#FFEEEEEE" Background="#FF1C1C1C" Grid.Column="1"
+                         Grid.Row="1" Grid.RowSpan="2" TextAlignment="Center" RenderTransformOrigin="0.5,0.5">
                     <TextBox.RenderTransform>
                         <TransformGroup>
-                            <ScaleTransform/>
-                            <SkewTransform AngleX="10"/>
-                            <RotateTransform/>
-                            <TranslateTransform/>
+                            <ScaleTransform />
+                            <SkewTransform AngleX="10" />
+                            <RotateTransform />
+                            <TranslateTransform />
                         </TransformGroup>
                     </TextBox.RenderTransform>
                 </TextBox>
-                <Button x:Name="PathSelect" Content="{Binding BasePath}" HorizontalAlignment="Left" Margin="86,84,0,0" VerticalAlignment="Top" Width="231" Height="33" Foreground="{Binding BasePathColor}" Grid.Row="1" Grid.RowSpan="2" Grid.ColumnSpan="2" BorderBrush="{x:Null}" RenderTransformOrigin="0.5,0.5">
+                <Button x:Name="PathSelect" Command="{Binding PathSelectCommand}" Content="{Binding Path=BasePath}"
+                        HorizontalAlignment="Left" Margin="86,84,0,0" VerticalAlignment="Top" Width="231" Height="33"
+                        Foreground="{Binding Path=BasePathColor}" Grid.Row="1" Grid.RowSpan="2" Grid.ColumnSpan="2"
+                        BorderBrush="{x:Null}" RenderTransformOrigin="0.5,0.5">
                     <Button.RenderTransform>
                         <TransformGroup>
-                            <ScaleTransform/>
-                            <SkewTransform AngleX="10"/>
-                            <RotateTransform/>
-                            <TranslateTransform/>
+                            <ScaleTransform />
+                            <SkewTransform AngleX="10" />
+                            <RotateTransform />
+                            <TranslateTransform />
                         </TransformGroup>
                     </Button.RenderTransform>
                 </Button>
-                <CheckBox x:Name="SortCheckBox" Content="Sort files by type" HorizontalAlignment="Left" Margin="91,45.4,0,0" Grid.Row="2" VerticalAlignment="Top" Background="Black" BorderBrush="Black" Foreground="#FFEEEEEE" IsChecked="{Binding Sort}"/>
-                <CheckBox x:Name="OverwriteCheckBox" Content="Overwrite existing files" HorizontalAlignment="Left" Margin="21.8,48.4,0,0" Grid.Row="2" VerticalAlignment="Top" Background="Black" BorderBrush="Black" Foreground="#FFEEEEEE" IsChecked="{Binding Overwrite}" Grid.Column="1"/>
+                <CheckBox x:Name="SortCheckBox" Content="Sort files by type" HorizontalAlignment="Left"
+                          Margin="91,45.4,0,0" Grid.Row="2" VerticalAlignment="Top" Background="Black"
+                          BorderBrush="Black" Foreground="#FFEEEEEE" IsChecked="{Binding Path=Sort}" />
+                <CheckBox x:Name="OverwriteCheckBox" Content="Overwrite existing files" HorizontalAlignment="Left"
+                          Margin="21.8,48.4,0,0" Grid.Row="2" VerticalAlignment="Top" Background="Black"
+                          BorderBrush="Black" Foreground="#FFEEEEEE" IsChecked="{Binding Path=Overwrite}"
+                          Grid.Column="1" />
                 <Border BorderThickness="1" Grid.ColumnSpan="2" Margin="51,102,52,46" Grid.Row="2" Grid.RowSpan="2">
                     <Border.BorderBrush>
                         <RadialGradientBrush>
-                            <GradientStop Color="#FF00FFD1"/>
-                            <GradientStop Color="#FF0097FF" Offset="1"/>
+                            <GradientStop Color="#FF00FFD1" />
+                            <GradientStop Color="#FF0097FF" Offset="1" />
                         </RadialGradientBrush>
                     </Border.BorderBrush>
-                    <ProgressBar Value="{Binding Progress}" Maximum="{Binding ToDownload}" Background="{x:Null}" BorderBrush="{x:Null}"></ProgressBar>
+                    <ProgressBar Value="{Binding Path=Progress}" Maximum="{Binding Path=ToDownload}"
+                                 Background="{x:Null}" BorderBrush="{x:Null}" />
                 </Border>
             </Grid>
-            <Grid HorizontalAlignment="Left" Height="451" VerticalAlignment="Top" Width="289" Background="#FF141414" Margin="0,-32,0,-3">
+            <Grid HorizontalAlignment="Left" Height="451" VerticalAlignment="Top" Width="289" Background="#FF141414"
+                  Margin="0,-32,0,-3">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="2*" />
                     <RowDefinition Height="2*" />
@@ -156,10 +188,22 @@
                     <ColumnDefinition Width="2*" />
                     <ColumnDefinition Width="2*" />
                 </Grid.ColumnDefinitions>
-                <TextBox x:Name="UserBox" HorizontalAlignment="Center" Height="29" Margin="24,88,23,108" TextWrapping="NoWrap" Text="{Binding Username}" Width="242" BorderBrush="#FF1C1C1C" Foreground="#FFEEEEEE" Background="#FF1C1C1C" Grid.Row="1" Grid.ColumnSpan="2" TextAlignment="Center" FontSize="16" Grid.RowSpan="2"/>
-                <PasswordBox local:AttachedProperties.EncryptedPassword="{Binding Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" x:Name="PassBox"  Password="password" HorizontalContentAlignment="Center" Height="29" Margin="24,24,23,0" VerticalAlignment="Top" Width="242" BorderBrush="{x:Null}" Foreground="#FFEEEEEE" Background="#FF1C1C1C" Grid.Row="2" Grid.ColumnSpan="2" FontSize="16" PasswordChanged="PassBox_PasswordChanged"/>
-                <Label x:Name="Error" Content="{Binding Error}" HorizontalAlignment="Left" Margin="43,73,0,0" Grid.Row="2" VerticalAlignment="Top" Grid.ColumnSpan="2" Width="198" HorizontalContentAlignment="Center" Foreground="Red" Height="45" FontSize="20" Grid.RowSpan="2"/>
-                <Label Content="Login" HorizontalAlignment="Left" Margin="43,76,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2" Width="198" Height="81" Grid.RowSpan="2" FontSize="48" HorizontalContentAlignment="Center" Foreground="#FFEEEEEE"/>
+                <TextBox x:Name="UserBox" HorizontalAlignment="Center" Height="29" Margin="24,88,23,108"
+                         TextWrapping="NoWrap" Text="{Binding Path=Username}" Width="242" BorderBrush="#FF1C1C1C"
+                         Foreground="#FFEEEEEE" Background="#FF1C1C1C" Grid.Row="1" Grid.ColumnSpan="2"
+                         TextAlignment="Center" FontSize="16" Grid.RowSpan="2" />
+                <PasswordBox
+                    local:AttachedProperties.EncryptedPassword="{Binding Path=Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    x:Name="PassBox" Password="password" HorizontalContentAlignment="Center" Height="29"
+                    Margin="24,24,23,0" VerticalAlignment="Top" Width="242" BorderBrush="{x:Null}"
+                    Foreground="#FFEEEEEE" Background="#FF1C1C1C" Grid.Row="2" Grid.ColumnSpan="2" FontSize="16"
+                    PasswordChanged="PassBox_PasswordChanged" />
+                <Label x:Name="Error" Content="{Binding Path=Error}" HorizontalAlignment="Left" Margin="43,73,0,0"
+                       Grid.Row="2" VerticalAlignment="Top" Grid.ColumnSpan="2" Width="198"
+                       HorizontalContentAlignment="Center" Foreground="Red" Height="45" FontSize="20" Grid.RowSpan="2" />
+                <Label Content="Login" HorizontalAlignment="Left" Margin="43,76,0,0" VerticalAlignment="Top"
+                       Grid.ColumnSpan="2" Width="198" Height="81" Grid.RowSpan="2" FontSize="48"
+                       HorizontalContentAlignment="Center" Foreground="#FFEEEEEE" />
             </Grid>
         </Grid>
     </ContentControl>

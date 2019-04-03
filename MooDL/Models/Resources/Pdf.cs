@@ -1,12 +1,12 @@
 ﻿namespace MooDL.Models.Resources
 {
-    class Pdf : Resource
+    internal class Pdf : Resource
     {
         public Pdf(string url, string name) : base(url, name.Replace(".pdf", ""))
         {
         }
 
-        public override string Extension { get; } = ".pdf";
-        public override string Type { get; } = "PDF";
+        public override string Extension => ".pdf";
+        public override string Type => "PDF";
     }
 }

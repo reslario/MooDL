@@ -1,12 +1,12 @@
 ﻿namespace MooDL.Models.Resources
 {
-    class Unknown : Resource
+    internal class Unknown : Resource
     {
         public Unknown(string url, string name) : base(url, name)
         {
         }
 
-        public override string Extension { get; } = ".txt";
-        public override string Type { get; } = "Unknown";
+        public override string Extension => ".txt";
+        public override string Type => "Unknown";
     }
 }

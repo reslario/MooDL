@@ -1,15 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net;
-using System.Text;
 
-namespace MooDL.Models
+namespace MooDL.Models.Web
 {
-    class CookieWebClient : WebClient
+    internal class CookieWebClient : WebClient
     {
-        public CookieContainer CookieContainer { get; }
-
         public CookieWebClient() => CookieContainer = new CookieContainer();
+        public CookieContainer CookieContainer { get; }
 
         protected override WebRequest GetWebRequest(Uri address)
         {

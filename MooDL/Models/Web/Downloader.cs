@@ -1,49 +1,78 @@
-﻿using MooDL.Models.Resources;
-using System;
+﻿using System;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Security;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using MooDL.Models.Resources;
 
-namespace MooDL.Models
+namespace MooDL.Models.Web
 {
-    class Downloader : DownloaderBase
+    internal class Downloader : DownloaderBase
     {
+        private int progress;
+
+        public Downloader() => cwc = new CookieWebClient();
+
         public event EventHandler OnFinished;
         public event EventHandler OnLoginFailed;
         public event EventHandler OnConnectionFailed;
         public event EventHandler<int> OnProgress;
         public event EventHandler<int> OnResourcesFound;
 
-        private int progress = 0;
-
-        public Downloader() => cwc = new CookieWebClient();
-
-        public async Task DownloadFiles(string courseId, string username, SecureString password, string basePath, string folder, bool sort, bool overwrite)
+        public async Task DownloadFiles(string courseId, string username, SecureString password, string basePath,
+            string folder, bool sort, bool overwrite)
         {
-            await Login(username, password);
-            var html = await DownloadPageSource("https://moodle.bbbaden.ch/course/view.php?id=" + courseId);
-            AnalyseSource(html);
-            var resources = GetResources(html);
+            if (!await Login(username, password))
+            {
+                OnConnectionFailed.Invoke(this, null);
+                OnFinished.Invoke(this, null);
+                return;
+
+            }
+            string html = await DownloadPageSource("https://moodle.bbbaden.ch/course/view.php?id=" + courseId);
+            if (GotLoginPage(html))
+            {
+                OnLoginFailed.Invoke(this, null);
+                OnFinished.Invoke(this, null);
+                return;
+            }
+            Resource[] resources = GetResources(html);
             OnResourcesFound.Invoke(this, resources.Length);
+            if (resources.Length <= 0)
+            {
+                OnFinished.Invoke(this, null);
+                return;
+            }
+
             await DownloadResources(resources, basePath, folder, sort, overwrite);
         }
 
-        private async Task Login(string username, SecureString password)
+        private async Task<bool> Login(string username, SecureString password)
         {
             NameValueCollection details = new NameValueCollection
             {
-                { "username", username },
-                { "password", Marshal.PtrToStringUni(Marshal.SecureStringToGlobalAllocUnicode(password ?? new SecureString())) },
+                {"username", username},
+                {
+                    "password",
+                    Marshal.PtrToStringUni(Marshal.SecureStringToGlobalAllocUnicode(password ?? new SecureString()))
+                }
             };
 
-            await cwc.UploadValuesTaskAsync(new Uri("https://moodle.bbbaden.ch/login/index.php"), details);
+            try
+            {
+                await cwc.UploadValuesTaskAsync(new Uri("https://moodle.bbbaden.ch/login/index.php"), details);
+                return true;
+            }
+            catch (WebException)
+            {
+                OnConnectionFailed.Invoke(this, null);
+                return false;
+            }
         }
+
 
         protected override async Task<string> DownloadPageSource(string url)
         {
@@ -58,22 +87,11 @@ namespace MooDL.Models
             }
         }
 
-        private void AnalyseSource(string html)
-        {
-            if (html.Contains("page-login-index"))
-                OnLoginFailed.Invoke(this, null);
-        }
+        private bool GotLoginPage(string html) => html.Contains("page-login-index");
 
         private async Task DownloadResources(Resource[] resources, string basePath, string folder, bool sort, bool overwrite)
         {
             string path = $"{basePath}{folder}\\";
-
-            Directory.CreateDirectory(path);
-
-            if (sort)
-                foreach (string s in resources.Select(r => r.Type).Distinct())
-                    Directory.CreateDirectory(path + s);
-
 
             foreach (Resource r in resources)
             {
@@ -85,9 +103,7 @@ namespace MooDL.Models
                     await fdl.DownloadFiles($"{path}{subFolder}{r.Name}", overwrite);
                 }
                 else
-                {
                     await Write($"{path}{subFolder}{r.Name}{r.Extension}", await Download(r.Url), overwrite);
-                }
 
                 progress++;
                 OnProgress.Invoke(this, progress);

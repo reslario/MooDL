@@ -1,12 +1,12 @@
 ﻿namespace MooDL.Models.Resources
 {
-    class Xlsx : Resource
+    internal class Xlsx : Resource
     {
         public Xlsx(string url, string name) : base(url, name.Replace(".xlsx", ""))
         {
         }
 
-        public override string Extension { get; } = ".xlsx";
-        public override string Type { get; } = "Excel";
+        public override string Extension => ".xlsx";
+        public override string Type => "Excel";
     }
 }

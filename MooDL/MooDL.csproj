@@ -58,15 +58,6 @@
     <ManifestCertificateThumbprint>12A1D275CA81F8E68ECE7EC0343D7D4095136918</ManifestCertificateThumbprint>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Caliburn.Micro, Version=3.2.0.0, Culture=neutral, PublicKeyToken=8e5891231f2ed21f, processorArchitecture=MSIL">
-      <HintPath>..\packages\Caliburn.Micro.Core.3.2.0\lib\net45\Caliburn.Micro.dll</HintPath>
-    </Reference>
-    <Reference Include="Caliburn.Micro.Platform, Version=3.2.0.0, Culture=neutral, PublicKeyToken=8e5891231f2ed21f, processorArchitecture=MSIL">
-      <HintPath>..\packages\Caliburn.Micro.3.2.0\lib\net45\Caliburn.Micro.Platform.dll</HintPath>
-    </Reference>
-    <Reference Include="Caliburn.Micro.Platform.Core, Version=3.2.0.0, Culture=neutral, PublicKeyToken=8e5891231f2ed21f, processorArchitecture=MSIL">
-      <HintPath>..\packages\Caliburn.Micro.3.2.0\lib\net45\Caliburn.Micro.Platform.Core.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.WindowsAPICodePack, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\WindowsAPICodePack.1.1.0\lib\Microsoft.WindowsAPICodePack.dll</HintPath>
     </Reference>
@@ -84,9 +75,6 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Windows.Interactivity, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Caliburn.Micro.3.2.0\lib\net45\System.Windows.Interactivity.dll</HintPath>
-    </Reference>
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -112,14 +100,15 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Models\DownloaderBase.cs" />
-    <Compile Include="Models\CookieWebClient.cs">
+    <Compile Include="Models\Input\CommandHandler.cs" />
+    <Compile Include="Models\Web\DownloaderBase.cs" />
+    <Compile Include="Models\Web\CookieWebClient.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="AttachedProperties.cs" />
-    <Compile Include="Models\FolderDownloader.cs" />
+    <Compile Include="Models\Web\FolderDownloader.cs" />
     <Compile Include="Models\Resources\Docx.cs" />
-    <Compile Include="Models\Downloader.cs" />
+    <Compile Include="Models\Web\Downloader.cs" />
     <Compile Include="Models\Resources\Folder.cs" />
     <Compile Include="Models\Resources\Pdf.cs" />
     <Compile Include="Models\Resources\Pptx.cs" />
@@ -127,8 +116,8 @@
     <Compile Include="Models\Resources\Unknown.cs" />
     <Compile Include="Models\Resources\Xlsx.cs" />
     <Compile Include="Models\Resources\Zip.cs" />
-    <Compile Include="MoodlBootstrapper.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
+    <Compile Include="ViewModels\PropertyChangeBase.cs" />
     <Compile Include="Views\MainView.xaml.cs">
       <DependentUpon>MainView.xaml</DependentUpon>
       <SubType>Code</SubType>

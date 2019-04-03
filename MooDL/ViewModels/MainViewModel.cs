@@ -1,37 +1,40 @@
 ﻿using System.Security;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.WindowsAPICodePack.Dialogs;
-using Caliburn.Micro;
-using MooDL.Models;
+using MooDL.Models.Input;
+using MooDL.Models.Web;
 
 namespace MooDL.ViewModels
 {
-    class MainViewModel : PropertyChangedBase
+    internal class MainViewModel : PropertyChangeBase
     {
+        private static readonly Brush eee = new BrushConverter().ConvertFromString("#EEEEEE") as SolidColorBrush;
+        private Brush _basePathColor = eee;
+
+        private bool pathSelected;
+
         private string _basePath = "Folder containing your courses...";
         public string BasePath
         {
             get => _basePath;
-            set
-            {
-                _basePath = value;
-                NotifyOfPropertyChange(() => BasePath);
-            }
+            set => SetProperty(ref _basePath, value);
         }
 
-        public string CourseId { get; set; } = "Course ID";
+        private string _courseId = "Course ID";
+        public string CourseId
+        {
+            get => _courseId;
+            set => SetProperty(ref _courseId, value);
+        }
 
         private string _error = "";
         public string Error
         {
             get => _error;
-            set
-            {
-                _error = value;
-                NotifyOfPropertyChange(() => Error);
-            }
+            set => SetProperty(ref _error, value);
         }
 
         public string Username { get; set; } = "username";
@@ -40,11 +43,7 @@ namespace MooDL.ViewModels
         public SecureString Password
         {
             get => _password;
-            set
-            {
-                _password = value;
-                NotifyOfPropertyChange(() => Password);
-            }
+            set => SetProperty(ref _password, value);
         }
 
         private string _folder = "Course";
@@ -58,52 +57,40 @@ namespace MooDL.ViewModels
 
         public bool Overwrite { get; set; } = false;
 
-        private bool pathSelected;
-
         private Brush _courseIdBorder;
         public Brush CourseIdBorder
         {
             get => _courseIdBorder;
-            set
-            {
-                _courseIdBorder = value;
-                NotifyOfPropertyChange(() => CourseIdBorder);
-            }
+            set => SetProperty(ref _courseIdBorder, value);
         }
 
-        private static readonly Brush eee = new BrushConverter().ConvertFromString("#EEEEEE") as SolidColorBrush;
-        private Brush _basePathColor = eee;
         public Brush BasePathColor
         {
             get => _basePathColor;
-            set
-            {
-                _basePathColor = value;
-                NotifyOfPropertyChange(() => BasePathColor);
-            }
+            set => SetProperty(ref _basePathColor, value);
         }
 
-        private int _progress = 0;
+        private int _progress;
         public int Progress
         {
             get => _progress;
-            set
-            {
-                _progress = value;
-                NotifyOfPropertyChange(() => Progress);
-            }
+            set => SetProperty(ref _progress, value);
         }
 
         private int _toDownload = 1;
         public int ToDownload
         {
             get => _toDownload;
-            set
-            {
-                _toDownload = value;
-                NotifyOfPropertyChange(() => ToDownload);
-            }
+            set => SetProperty(ref _toDownload, value);
         }
+
+        private ICommand _downloadCommand;
+        public ICommand DownloadCommand
+            => _downloadCommand ?? (_downloadCommand = new CommandHandler(async () => await Download()));
+
+        private ICommand _pathSelectCommand;
+        public ICommand PathSelectCommand
+            => _pathSelectCommand ?? (_pathSelectCommand = new CommandHandler(PathSelect));
 
         public async Task Download()
         {
@@ -118,10 +105,14 @@ namespace MooDL.ViewModels
 
         private void AddHandlers(Downloader dl)
         {
-            dl.OnResourcesFound += (s, amount) => ToDownload = amount;
             dl.OnConnectionFailed += (s, args) => Error = "Connection failed";
             dl.OnLoginFailed += (s, args) => Error = "Login failed";
-            dl.OnProgress += (s, progress) => Progress = progress; 
+            dl.OnProgress += (s, progress) => Progress = progress;
+            dl.OnResourcesFound += (s, amount) =>
+            {
+                Error = amount > 0 ? "" : "No resources found";
+                ToDownload = amount;
+            };
             dl.OnFinished += (s, args) =>
             {
                 ToDownload = 1;
@@ -142,7 +133,6 @@ namespace MooDL.ViewModels
                 BasePathColor = eee;
                 BasePath = $"{cofd.FileName}\\";
             }
-
         }
 
         private bool CourseIdIsValid()
