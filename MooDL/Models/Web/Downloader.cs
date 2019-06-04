@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Threading.Tasks;
@@ -13,8 +15,6 @@ namespace MooDL.Models.Web
     internal class Downloader : DownloaderBase
     {
         private int progress;
-
-        public Downloader() => cwc = new CookieWebClient();
 
         public event EventHandler OnFinished;
         public event EventHandler OnLoginFailed;
@@ -52,7 +52,7 @@ namespace MooDL.Models.Web
 
         private async Task<bool> Login(string username, SecureString password)
         {
-            NameValueCollection details = new NameValueCollection
+            Dictionary<string, string> details = new Dictionary<string, string>()
             {
                 {"username", username},
                 {
@@ -63,7 +63,7 @@ namespace MooDL.Models.Web
 
             try
             {
-                await cwc.UploadValuesTaskAsync(new Uri("https://moodle.bbbaden.ch/login/index.php"), details);
+                await new HttpClient(clientHandler).PostAsync("https://moodle.bbbaden.ch/login/index.php", new FormUrlEncodedContent(details));
                 return true;
             }
             catch (WebException)
@@ -92,6 +92,7 @@ namespace MooDL.Models.Web
         private async Task DownloadResources(Resource[] resources, string basePath, string folder, bool sort, bool overwrite)
         {
             string path = $"{basePath}{folder}\\";
+            List<Task> tasks = new List<Task>();
 
             foreach (Resource r in resources)
             {
@@ -99,15 +100,29 @@ namespace MooDL.Models.Web
 
                 if (r is Folder f)
                 {
-                    FolderDownloader fdl = new FolderDownloader(cwc, f);
-                    await fdl.DownloadFiles($"{path}{subFolder}{r.Name}", overwrite);
+                    FolderDownloader fdl = new FolderDownloader(clientHandler, f);
+                    tasks.Add(fdl.DownloadFiles($"{path}{subFolder}{r.Name}", overwrite));
                 }
                 else
-                    await Write($"{path}{subFolder}{r.Name}{r.Extension}", await Download(r.Url), overwrite);
+                {
+                    tasks.Add(Download(r.Url, r.Name + r.Extension).ContinueWith(async x =>
+                    {
+                        byte[] bytes = x.Result;
+                        if (bytes != null)
+                        {
+                           await Write($"{path}{subFolder}{r.Name}{r.Extension}", bytes, overwrite);
+                        }
+                    }));
+                }
+            }
 
+            while (tasks.Count > 0)
+            {
+                tasks.Remove(await Task.WhenAny(tasks));
                 progress++;
                 OnProgress.Invoke(this, progress);
             }
+            
 
             OnFinished.Invoke(this, null);
         }

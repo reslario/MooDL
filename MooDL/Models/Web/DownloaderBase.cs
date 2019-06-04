@@ -1,6 +1,8 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -10,10 +12,38 @@ namespace MooDL.Models.Web
 {
     internal abstract class DownloaderBase
     {
-        protected CookieWebClient cwc;
+        internal class FileConfirmationEventArgs
+        {
+            public FileConfirmationEventArgs(string filename, long size)
+            {
+                Filename = filename;
+                Size = size;
+            }
 
-        protected virtual async Task<string> DownloadPageSource(string url)
-            => Encoding.UTF8.GetString(await Download(url));
+            public string Filename { get; }
+            public long Size { get; }
+            public bool ShouldDownload { get; set; } = false;
+        }
+
+        // The maximum filesize before the user is asked
+        public long ConfirmationFilesize { get; set; } = 1024 * 1024 * 100; // 100 MB
+        // Event to confirm file download
+        public event Func<object, FileConfirmationEventArgs, Task> OnFileConfirmation;
+
+        protected async Task<bool> RaiseFileConfirmation(string filename, long size)
+        {
+            FileConfirmationEventArgs args = new FileConfirmationEventArgs(filename, size);
+            await OnFileConfirmation?.Invoke(this, args);
+            return args.ShouldDownload;
+        }
+
+        protected HttpClientHandler clientHandler = new HttpClientHandler() {CookieContainer = new CookieContainer()};
+
+        protected virtual Task<string> DownloadPageSource(string url)
+        {
+            HttpClient client = new HttpClient(clientHandler);
+            return client.GetStringAsync(url);
+        }
 
         protected async Task Write(string path, byte[] bytes, bool overwrite)
         {
@@ -66,16 +96,72 @@ namespace MooDL.Models.Web
             return r;
         }
 
-        protected async Task<byte[]> Download(string url)
+        protected async Task<byte[]> Download(string url, string filename)
         {
             try
             {
-                return await cwc.DownloadDataTaskAsync(url);
+                using (HttpClient client = new HttpClient(clientHandler, false))
+                {
+                    HttpResponseMessage responseMessage = await client.GetAsync(url);
+                    long size = long.Parse(responseMessage.Content.Headers.First(h => h.Key.Equals("Content-Length")).Value.First());
+                    if (size < ConfirmationFilesize || await RaiseFileConfirmation(filename, size))
+                    {
+                        return await responseMessage.Content.ReadAsByteArrayAsync();
+                    }
+
+                    return null;
+                }
             }
             catch (WebException)
             {
                 return Encoding.ASCII.GetBytes("download failed");
             }
+        }
+
+        public string BytesToHumanReadable(long i)
+        {
+            // Get absolute value
+            long absolute_i = (i < 0 ? -i : i);
+            // Determine the suffix and readable value
+            string suffix;
+            double readable;
+            if (absolute_i >= 0x1000000000000000) // Exabyte
+            {
+                suffix = "EB";
+                readable = (i >> 50);
+            }
+            else if (absolute_i >= 0x4000000000000) // Petabyte
+            {
+                suffix = "PB";
+                readable = (i >> 40);
+            }
+            else if (absolute_i >= 0x10000000000) // Terabyte
+            {
+                suffix = "TB";
+                readable = (i >> 30);
+            }
+            else if (absolute_i >= 0x40000000) // Gigabyte
+            {
+                suffix = "GB";
+                readable = (i >> 20);
+            }
+            else if (absolute_i >= 0x100000) // Megabyte
+            {
+                suffix = "MB";
+                readable = (i >> 10);
+            }
+            else if (absolute_i >= 0x400) // Kilobyte
+            {
+                suffix = "KB";
+                readable = i;
+            }
+            else
+            {
+                return i.ToString("0 B"); // Byte
+            }
+            // Divide by 1024 to get fractional value
+            readable = (readable / 1024);
+            return readable.ToString("0.### ") + suffix;
         }
     }
 }

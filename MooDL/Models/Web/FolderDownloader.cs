@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Net.Http;
+using System.Threading.Tasks;
 using MooDL.Models.Resources;
 
 namespace MooDL.Models.Web
@@ -7,16 +9,22 @@ namespace MooDL.Models.Web
     {
         private readonly Folder folder;
 
-        public FolderDownloader(CookieWebClient cwc, Folder folder)
+        public FolderDownloader(HttpClientHandler handler, Folder folder)
         {
-            this.cwc = cwc;
+            clientHandler = handler;
             this.folder = folder;
         }
 
         public async Task DownloadFiles(string path, bool overwrite)
         {
             foreach (Resource r in GetResources(await DownloadPageSource(folder.Url)))
-                await Write($"{path}\\{r.Name}{r.Extension}", await Download(r.Url), overwrite);
+            {
+                byte[] bytes = await Download(r.Url, r.Name + r.Extension);
+                if (bytes != null)
+                {
+                    await Write($"{path}\\{r.Name}{r.Extension}", bytes, overwrite);
+                }
+            }
         }
     }
 }
