@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -36,10 +37,13 @@ namespace MooDL.Models.Web
             return args.ShouldDownload;
         }
 
-        protected CookieWebClient cwc;
+        protected HttpClientHandler clientHandler = new HttpClientHandler() {CookieContainer = new CookieContainer()};
 
-        protected virtual async Task<string> DownloadPageSource(string url)
-            => Encoding.UTF8.GetString(await Download(url));
+        protected virtual Task<string> DownloadPageSource(string url)
+        {
+            HttpClient client = new HttpClient(clientHandler);
+            return client.GetStringAsync(url);
+        }
 
         protected async Task Write(string path, byte[] bytes, bool overwrite)
         {
@@ -92,26 +96,25 @@ namespace MooDL.Models.Web
             return r;
         }
 
-        protected async Task<byte[]> Download(string url)
+        protected async Task<byte[]> Download(string url, string filename)
         {
             try
             {
-                return await cwc.DownloadDataTaskAsync(url);
+                using (HttpClient client = new HttpClient(clientHandler, false))
+                {
+                    HttpResponseMessage responseMessage = await client.GetAsync(url);
+                    long size = long.Parse(responseMessage.Content.Headers.First(h => h.Key.Equals("Content-Length")).Value.First());
+                    if (size < ConfirmationFilesize || await RaiseFileConfirmation(filename, size))
+                    {
+                        return await responseMessage.Content.ReadAsByteArrayAsync();
+                    }
+
+                    return null;
+                }
             }
             catch (WebException)
             {
                 return Encoding.ASCII.GetBytes("download failed");
-            }
-        }
-
-        protected async Task<long> GetFilesize(string url)
-        {
-            HttpWebRequest request = WebRequest.CreateHttp(url);
-            request.CookieContainer = cwc.CookieContainer;
-            request.Method = "HEAD";
-            using (HttpWebResponse resp = (HttpWebResponse)await request.GetResponseAsync())
-            {
-                return resp.ContentLength;
             }
         }
 
