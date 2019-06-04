@@ -16,7 +16,14 @@ namespace MooDL.Models.Web
         public async Task DownloadFiles(string path, bool overwrite)
         {
             foreach (Resource r in GetResources(await DownloadPageSource(folder.Url)))
-                await Write($"{path}\\{r.Name}{r.Extension}", await Download(r.Url), overwrite);
+            {
+                long size = await GetFilesize(r.Url);
+                if (size < ConfirmationFilesize || await RaiseFileConfirmation(r.Name + r.Extension, size))
+                {
+                    await Write($"{path}\\{r.Name}{r.Extension}", await Download(r.Url), overwrite);
+                }
+                
+            }
         }
     }
 }

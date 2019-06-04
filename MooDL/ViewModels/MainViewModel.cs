@@ -1,6 +1,7 @@
 ﻿using System.Security;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.WindowsAPICodePack.Dialogs;
@@ -118,6 +119,13 @@ namespace MooDL.ViewModels
                 ToDownload = 1;
                 Progress = 0;
             };
+            dl.OnFileConfirmation += (o, args) => Task.Run(() =>
+            {
+                MessageBoxResult result = MessageBox.Show(
+                    $"Would you like to download {args.Filename}? It is {dl.BytesToHumanReadable(args.Size)} large.",
+                    "Confirm Download", MessageBoxButton.YesNo);
+                args.ShouldDownload = result == MessageBoxResult.Yes;
+            });
         }
 
         public void PathSelect()

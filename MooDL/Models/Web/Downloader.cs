@@ -103,7 +103,13 @@ namespace MooDL.Models.Web
                     await fdl.DownloadFiles($"{path}{subFolder}{r.Name}", overwrite);
                 }
                 else
-                    await Write($"{path}{subFolder}{r.Name}{r.Extension}", await Download(r.Url), overwrite);
+                {
+                    long size = await GetFilesize(r.Url);
+                    if (size < ConfirmationFilesize || await RaiseFileConfirmation(r.Name + r.Extension, size))
+                    {
+                        await Write($"{path}{subFolder}{r.Name}{r.Extension}", await Download(r.Url), overwrite);
+                    }
+                }
 
                 progress++;
                 OnProgress.Invoke(this, progress);

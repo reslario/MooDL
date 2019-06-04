@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -10,6 +11,31 @@ namespace MooDL.Models.Web
 {
     internal abstract class DownloaderBase
     {
+        internal class FileConfirmationEventArgs
+        {
+            public FileConfirmationEventArgs(string filename, long size)
+            {
+                Filename = filename;
+                Size = size;
+            }
+
+            public string Filename { get; }
+            public long Size { get; }
+            public bool ShouldDownload { get; set; } = false;
+        }
+
+        // The maximum filesize before the user is asked
+        public long ConfirmationFilesize { get; set; } = 1024 * 1024 * 100; // 100 MB
+        // Event to confirm file download
+        public event Func<object, FileConfirmationEventArgs, Task> OnFileConfirmation;
+
+        protected async Task<bool> RaiseFileConfirmation(string filename, long size)
+        {
+            FileConfirmationEventArgs args = new FileConfirmationEventArgs(filename, size);
+            await OnFileConfirmation?.Invoke(this, args);
+            return args.ShouldDownload;
+        }
+
         protected CookieWebClient cwc;
 
         protected virtual async Task<string> DownloadPageSource(string url)
@@ -76,6 +102,63 @@ namespace MooDL.Models.Web
             {
                 return Encoding.ASCII.GetBytes("download failed");
             }
+        }
+
+        protected async Task<long> GetFilesize(string url)
+        {
+            HttpWebRequest request = WebRequest.CreateHttp(url);
+            request.CookieContainer = cwc.CookieContainer;
+            request.Method = "HEAD";
+            using (HttpWebResponse resp = (HttpWebResponse)await request.GetResponseAsync())
+            {
+                return resp.ContentLength;
+            }
+        }
+
+        public string BytesToHumanReadable(long i)
+        {
+            // Get absolute value
+            long absolute_i = (i < 0 ? -i : i);
+            // Determine the suffix and readable value
+            string suffix;
+            double readable;
+            if (absolute_i >= 0x1000000000000000) // Exabyte
+            {
+                suffix = "EB";
+                readable = (i >> 50);
+            }
+            else if (absolute_i >= 0x4000000000000) // Petabyte
+            {
+                suffix = "PB";
+                readable = (i >> 40);
+            }
+            else if (absolute_i >= 0x10000000000) // Terabyte
+            {
+                suffix = "TB";
+                readable = (i >> 30);
+            }
+            else if (absolute_i >= 0x40000000) // Gigabyte
+            {
+                suffix = "GB";
+                readable = (i >> 20);
+            }
+            else if (absolute_i >= 0x100000) // Megabyte
+            {
+                suffix = "MB";
+                readable = (i >> 10);
+            }
+            else if (absolute_i >= 0x400) // Kilobyte
+            {
+                suffix = "KB";
+                readable = i;
+            }
+            else
+            {
+                return i.ToString("0 B"); // Byte
+            }
+            // Divide by 1024 to get fractional value
+            readable = (readable / 1024);
+            return readable.ToString("0.### ") + suffix;
         }
     }
 }
